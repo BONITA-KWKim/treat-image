@@ -1,3 +1,5 @@
+import os
+
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
@@ -5,11 +7,11 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files import File
 
-from PIL import Image
+from PIL import Image, ImageFilter, ImageEnhance
 
 from .forms import UploadImageForm
 from .models import UploadImage, ProcessedImage
-import os
+
 # Create your views here.
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
@@ -23,13 +25,17 @@ def mosaic(request):
             instance.save()
 
             ## image processing
-            after_name = 'mosaic_' + request.FILES['raw_image'].name
+            after_name = 'blur_' + request.FILES['raw_image'].name
 
             im = Image.open(request.FILES['raw_image'])
-            size = (64, 64)
-            im.thumbnail(size)
+            #size = (64, 64)
+            #im.thumbnail(size)
+            sharpener = ImageEnhance.Sharpness (im.convert('RGB'))
+            blurred_image = im.convert('RGB').filter(ImageFilter.BLUR)
+
             ## save temporary image file
-            im.save('tmp/' + after_name)
+            #im.save('tmp/' + after_name)
+            blurred_image.save('tmp/' + after_name)
 
             ## save processed image (processedimage table)
             f = open('tmp/' + after_name, 'rb')
