@@ -1,4 +1,4 @@
 from django import forms
 
 class UploadImageForm(forms.Form):
-    file = forms.FileField()
+    raw_image = forms.ImageField()
