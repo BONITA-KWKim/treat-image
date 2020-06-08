@@ -12,6 +12,9 @@ from PIL import Image, ImageFilter, ImageEnhance
 from .forms import UploadImageForm
 from .models import UploadImage, ProcessedImage
 
+import mimetypes
+#import magic
+
 # Create your views here.
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
@@ -30,7 +33,7 @@ def mosaic(request):
             im = Image.open(request.FILES['raw_image'])
             #size = (64, 64)
             #im.thumbnail(size)
-            sharpener = ImageEnhance.Sharpness (im.convert('RGB'))
+            #sharpener = ImageEnhance.Sharpness (im.convert('RGB'))
             blurred_image = im.convert('RGB').filter(ImageFilter.BLUR)
 
             ## save temporary image file
@@ -49,7 +52,16 @@ def mosaic(request):
             ## remove tmp image
             os.remove('tmp/' + after_name)
 
-            return HttpResponse("success to save a image")
+            mime_type = str(mimetypes.guess_type('procescced_pic/' + after_name)[0])
+            print(mime_type)
+
+            image_buffer = open('processed_pic/' + after_name, "rb").read()
+            #content_type = magic.from_buffer(image_buffer, mime=True)
+            response = HttpResponse(image_buffer, content_type=mime_type)
+            response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename('processed_pic/' + after_name)
+            return response
+
+            #return HttpResponse("success to save a image")
         return HttpResponse("invalid request")
     return HttpResponse("Mosaic API")
 
